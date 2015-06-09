@@ -183,6 +183,78 @@ class Client implements ClientInterface
     }
 
     /**
+    *@inheritdoc
+    */
+    public function createBill(BillInterface $bill)
+    {
+        $request = $this->createNewRequest();
+        $request->setMethod(Request::METHOD_POST);
+        $request->setPath('bills');
+
+
+        $currency     = $bill->getCurrency();
+
+        $item         = $bill->getItem();
+        $buyer        = $bill->getBuyer();
+        $buyerAddress = $buyer->getAddress();
+
+        $body = array(
+            'price'             => $item->getPrice(),
+            'currency'          => $currency->getCode(),
+            'number'            => $bill->getNumber(),
+            'items'             => $bill->getItems(),
+            'showRate'          => $bill->getShowRate(),
+            'name'              => trim(sprintf('%s %s', $buyer->getFirstName(), $buyer->getLastName())),
+            'address1'          => isset($buyerAddress[0]) ? $buyerAddress[0] : '',
+            'address2'          => isset($buyerAddress[1]) ? $buyerAddress[1] : '',
+            'city'              => $buyer->getCity(),
+            'state'             => $buyer->getState(),
+            'zip'               => $buyer->getZip(),
+            'country'           => $buyer->getCountry(),
+            'email'             => $buyer->getEmail(),
+            'phone'             => $buyer->getPhone(),
+            'guid'              => Util::guid(),
+            'nonce'             => Util::nonce(),
+            'dueDate'           => $bill->getDueDate(),
+            'token'             => $this->token->getToken()
+        );
+
+        $request->setBody(json_encode($body));
+        $this->addIdentityHeader($request);
+        $this->addSignatureHeader($request);
+        $this->request  = $request;
+        $this->response = $this->sendRequest($request);
+
+        $body = json_decode($this->response->getBody(), true);
+        $error_message = false;
+        $error_message = (!empty($body['error'])) ? $body['error'] : $error_message;
+        $error_message = (!empty($body['errors'])) ? $body['errors'] : $error_message;
+        $error_message = (is_array($error_message)) ? implode("\n", $error_message) : $error_message;
+        if (false !== $error_message) {
+            throw new \Exception($error_message);
+        }
+        $data = $body['data'];
+        $billToken = new \Bitpay\Token();
+
+        $invoice
+            ->setToken($billToken->setToken($data['token']))
+            ->setId($data['id'])
+            ->setStatus($data['status'])
+            ->setCurrency($data['currency'])
+            ->setPrice($data['price'])
+            ->setCreatedAt($data['createdDate'])
+            ->setShowRate($data['showRate'])
+            ->setArchived($data['archived'])
+            ->setNumber($data['number'])
+            ->setDelivered($data['delivered'])
+            ->setDueDate($data['btcPaid'])
+            ->setExceptionStatus($data['exceptionStatus']);
+
+        return $invoice;
+    }
+
+
+    /**
      * @inheritdoc
      */
     public function getCurrencies()

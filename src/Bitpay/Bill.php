@@ -1,6 +1,6 @@
 <?php
 /**
- * @license Copyright 2011-2014 BitPay Inc., MIT License 
+ * @license Copyright 2011-2014 BitPay Inc., MIT License
  * see https://github.com/bitpay/php-bitpay-client/blob/master/LICENSE
  */
 
@@ -76,6 +76,30 @@ class Bill implements BillInterface
      * @var boolean
      */
     protected $archived;
+
+    /**
+    *@var int
+    */
+    protected $number;
+
+    /**
+    *@var string
+    */
+    protected $dueDate;
+    /**
+    * @var BuyerInterface
+    **/
+    protected $buyer;
+
+    /**
+    *@var string
+    */
+    protected $createdAt;
+
+    /**
+    *@var boolean
+    */
+    protected $deliverd;
 
     /**
      */
@@ -368,6 +392,163 @@ class Bill implements BillInterface
     {
         $this->archived = (boolean) $archived;
 
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getBuyer()
+    {
+        // Same logic as getItem method
+        if (null == $this->buyer) {
+            $this->buyer = new Buyer();
+        }
+
+        return $this->buyer;
+    }
+
+    /**
+     * @param BuyerInterface $buyer
+     *
+     * @return InvoiceInterface
+     */
+    public function setBuyer(BuyerInterface $buyer)
+    {
+        if (!empty($buyer)) {
+            $this->buyer = $buyer;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getBuyerName()
+    {
+        $firstName = $this->getBuyer()->getFirstName();
+        $lastName  = $this->getBuyer()->getLastName();
+
+        return trim($firstName.' '.$lastName);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getBuyerAddress1()
+    {
+        $address = $this->getBuyer()->getAddress();
+
+        return $address[0];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getBuyerAddress2()
+    {
+        $address = $this->getBuyer()->getAddress();
+
+        return $address[1];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getBuyerCity()
+    {
+        return $this->getBuyer()->getCity();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getBuyerState()
+    {
+        return $this->getBuyer()->getState();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getBuyerZip()
+    {
+        return $this->getBuyer()->getZip();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getBuyerCountry()
+    {
+        return $this->getBuyer()->getCountry();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getBuyerEmail()
+    {
+        return $this->getBuyer()->getEmail();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getBuyerPhone()
+    {
+        return $this->getBuyer()->getEmail();
+    }
+
+    /**
+    *@inheritdoc
+    */
+    public function getNumber()
+    {
+        return $this->number;
+    }
+
+    /**
+    *@inheritdoc
+    */
+    public function setNumber($number)
+    {
+        $this->number = $number;
+        return $this;
+    }
+
+    /**
+    *@inheritdoc
+    */
+    public function getDueDate()
+    {
+        return $this->dueDate;
+    }
+
+    /**
+    *@inheritdoc
+    */
+    public function setDueDate($dueDate)
+    {
+        $this->dueDate = $dueDate;
+        return $this;
+    }
+
+    /**
+    *@inheritdoc
+    */
+    public function getCreatedAt()
+    {
+        return $this->createdAt;
+    }
+
+    /**
+    *@inheritdoc
+    */
+    public function setCreatedAt($date)
+    {
+        $this->createdAt = $date;
         return $this;
     }
 }
